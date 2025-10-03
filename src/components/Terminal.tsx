@@ -46,11 +46,11 @@ export default function Terminal() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'success':
-        return <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />;
+        return <CheckCircle className="w-3.5 h-3.5 text-white" />;
       case 'failed':
         return <XCircle className="w-3.5 h-3.5 text-red-400" />;
       case 'pending':
-        return <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin" />;
+        return <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />;
       default:
         return <AlertCircle className="w-3.5 h-3.5 text-amber-400" />;
     }
@@ -64,31 +64,31 @@ export default function Terminal() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-950">
-      <div className="h-10 border-b border-slate-800 flex items-center px-4 bg-slate-900">
-        <TerminalIcon className="w-4 h-4 text-emerald-400 mr-2" />
-        <span className="text-sm text-slate-300">Execution Log</span>
+    <div className="h-full flex flex-col bg-black">
+      <div className="h-10 border-b border-[#2F4F4F] flex items-center px-4 bg-[#36454F]">
+        <TerminalIcon className="w-4 h-4 text-white mr-2" />
+        <span className="text-sm text-white">Execution Log</span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 font-mono text-xs space-y-1">
         {logs.map((log) => (
-          <div key={log.id} className="flex items-start gap-2 py-1 px-2 hover:bg-slate-900/50 rounded">
+          <div key={log.id} className="flex items-start gap-2 py-1 px-2 hover:bg-[#36454F] rounded">
             {getStatusIcon(log.status)}
-            <span className="text-slate-500">
+            <span className="text-gray-500">
               {new Date(log.created_at).toLocaleTimeString()}
             </span>
-            <span className="text-slate-400">→</span>
-            <span className="text-slate-300">{getActionLabel(log.action_type)}</span>
+            <span className="text-gray-400">→</span>
+            <span className="text-white">{getActionLabel(log.action_type)}</span>
             {log.target_path && (
               <>
-                <span className="text-slate-600">•</span>
-                <span className="text-cyan-400">{log.target_path}</span>
+                <span className="text-gray-600">•</span>
+                <span className="text-white font-medium">{log.target_path}</span>
               </>
             )}
             {log.details.message && (
               <>
-                <span className="text-slate-600">•</span>
-                <span className="text-slate-400">{log.details.message}</span>
+                <span className="text-gray-600">•</span>
+                <span className="text-gray-300">{log.details.message}</span>
               </>
             )}
           </div>
@@ -96,7 +96,7 @@ export default function Terminal() {
 
         {logs.length === 0 && (
           <div className="h-full flex items-center justify-center">
-            <p className="text-slate-600">No execution logs yet</p>
+            <p className="text-gray-500">No execution logs yet</p>
           </div>
         )}
       </div>

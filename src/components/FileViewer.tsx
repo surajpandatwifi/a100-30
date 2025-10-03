@@ -118,10 +118,10 @@ public class EnemyAI : MonoBehaviour
 export default function FileViewer({ filePath }: FileViewerProps) {
   if (!filePath) {
     return (
-      <div className="h-full flex items-center justify-center bg-slate-950">
+      <div className="h-full flex items-center justify-center bg-black">
         <div className="text-center space-y-3">
-          <FileQuestion className="w-12 h-12 text-slate-600 mx-auto" />
-          <p className="text-sm text-slate-500">Select a file to preview</p>
+          <FileQuestion className="w-12 h-12 text-gray-600 mx-auto" />
+          <p className="text-sm text-gray-400">Select a file to preview</p>
         </div>
       </div>
     );
@@ -131,23 +131,23 @@ export default function FileViewer({ filePath }: FileViewerProps) {
 
   if (!content) {
     return (
-      <div className="h-full flex items-center justify-center bg-slate-950">
+      <div className="h-full flex items-center justify-center bg-black">
         <div className="text-center space-y-3">
-          <FileQuestion className="w-12 h-12 text-slate-600 mx-auto" />
-          <p className="text-sm text-slate-500">File content not available</p>
+          <FileQuestion className="w-12 h-12 text-gray-600 mx-auto" />
+          <p className="text-sm text-gray-400">File content not available</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-slate-950">
-      <div className="h-10 border-b border-slate-800 flex items-center px-4 bg-slate-900">
-        <FileCode className="w-4 h-4 text-cyan-400 mr-2" />
-        <span className="text-sm text-slate-300 font-mono">{filePath}</span>
+    <div className="h-full flex flex-col bg-black">
+      <div className="h-10 border-b border-[#2F4F4F] flex items-center px-4 bg-[#36454F]">
+        <FileCode className="w-4 h-4 text-white mr-2" />
+        <span className="text-sm text-white font-mono">{filePath}</span>
       </div>
       <div className="flex-1 overflow-auto p-4">
-        <pre className="text-sm text-slate-200 font-mono leading-relaxed">
+        <pre className="text-sm text-gray-200 font-mono leading-relaxed">
           <code>{content}</code>
         </pre>
       </div>

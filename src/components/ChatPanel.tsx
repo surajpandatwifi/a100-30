@@ -132,12 +132,12 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-900">
-      <div className="h-12 border-b border-slate-800 flex items-center justify-between px-4">
-        <h2 className="text-sm font-medium text-slate-300">Chat</h2>
+    <div className="flex flex-col h-full bg-[#36454F]">
+      <div className="h-12 border-b border-[#2F4F4F] flex items-center justify-between px-4">
+        <h2 className="text-sm font-medium text-white">Chat</h2>
         <button
           onClick={handleNewChat}
-          className="p-1.5 hover:bg-slate-800 rounded-md transition-colors text-slate-400 hover:text-white"
+          className="px-3 py-1.5 bg-white text-black rounded-md transition-colors hover:bg-gray-200 font-medium text-sm"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -147,11 +147,11 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center space-y-3 max-w-md">
-              <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                <MessageSquare className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 mx-auto rounded-xl bg-white flex items-center justify-center">
+                <MessageSquare className="w-8 h-8 text-black" />
               </div>
               <h3 className="text-lg font-semibold text-white">Welcome to Shunya</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
+              <p className="text-sm text-gray-300 leading-relaxed">
                 Your AI-powered Unity development assistant. Describe what you want to build or
                 modify, and I'll help you plan and execute changes safely.
               </p>
@@ -163,7 +163,7 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
               <MessageBubble key={message.id} message={message} onFileClick={onFileSelect} />
             ))}
             {isLoading && (
-              <div className="flex items-center gap-2 text-slate-400">
+              <div className="flex items-center gap-2 text-gray-300">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm">Thinking...</span>
               </div>
@@ -173,7 +173,7 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
         )}
       </div>
 
-      <div className="p-4 border-t border-slate-800">
+      <div className="p-4 border-t border-[#2F4F4F]">
         <div className="flex gap-2">
           <input
             type="text"
@@ -181,13 +181,13 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Describe what you want to build or modify..."
-            className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            className="flex-1 bg-black border border-[#2F4F4F] rounded-lg px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
             disabled={isLoading}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-white hover:bg-gray-200 disabled:bg-[#36454F] disabled:text-gray-600 text-black font-medium rounded-lg transition-colors flex items-center gap-2"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

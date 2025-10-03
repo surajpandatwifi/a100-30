@@ -46,9 +46,9 @@ export default function MessageBubble({ message, onFileClick }: MessageBubblePro
 
   if (isSystem) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
-        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
-        <span className="text-xs text-slate-400">{message.content}</span>
+      <div className="flex items-center gap-2 px-3 py-2 bg-[#36454F] rounded-lg border border-[#2F4F4F]">
+        <div className="w-1.5 h-1.5 rounded-full bg-white" />
+        <span className="text-xs text-gray-300">{message.content}</span>
       </div>
     );
   }
@@ -58,17 +58,17 @@ export default function MessageBubble({ message, onFileClick }: MessageBubblePro
       <div
         className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
           isUser
-            ? 'bg-gradient-to-br from-emerald-500 to-teal-600'
-            : 'bg-gradient-to-br from-cyan-500 to-blue-600'
+            ? 'bg-white'
+            : 'bg-white'
         }`}
       >
-        {isUser ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
+        {isUser ? <User className="w-4 h-4 text-black" /> : <Bot className="w-4 h-4 text-black" />}
       </div>
 
       <div className={`flex-1 space-y-2 ${isUser ? 'flex flex-col items-end' : ''}`}>
         <div
           className={`rounded-lg px-4 py-3 max-w-[85%] ${
-            isUser ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-100'
+            isUser ? 'bg-[#2F4F4F] text-white' : 'bg-black border border-[#2F4F4F] text-white'
           }`}
         >
           {renderContent().map((part, index) =>
@@ -86,7 +86,7 @@ export default function MessageBubble({ message, onFileClick }: MessageBubblePro
             )
           )}
         </div>
-        <span className="text-xs text-slate-500 px-2">
+        <span className="text-xs text-gray-500 px-2">
           {new Date(message.created_at).toLocaleTimeString()}
         </span>
       </div>

@@ -28,28 +28,28 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl border border-slate-800">
-        <div className="flex items-center justify-between p-6 border-b border-slate-800">
+      <div className="bg-[#2F4F4F] rounded-xl shadow-2xl w-full max-w-2xl border border-[#36454F]">
+        <div className="flex items-center justify-between p-6 border-b border-[#36454F]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-              <Key className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center">
+              <Key className="w-5 h-5 text-black" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-white">Settings</h2>
-              <p className="text-sm text-slate-400">Configure AI providers and API keys</p>
+              <p className="text-sm text-gray-300">Configure AI providers and API keys</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white"
+            className="px-3 py-2 bg-white text-black rounded-lg transition-colors hover:bg-gray-200 font-medium"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-3">
+            <label className="block text-sm font-medium text-white mb-3">
               <Brain className="w-4 h-4 inline mr-2" />
               Preferred AI Provider
             </label>
@@ -64,56 +64,60 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                   onClick={() => setSelectedProvider(provider.id as any)}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     selectedProvider === provider.id
-                      ? 'border-cyan-500 bg-cyan-500/10'
-                      : 'border-slate-700 bg-slate-800 hover:border-slate-600'
+                      ? 'border-white bg-white text-black'
+                      : 'border-[#36454F] bg-black hover:border-white text-white'
                   }`}
                 >
-                  <div className="text-sm font-medium text-white">{provider.name}</div>
-                  <div className="text-xs text-slate-400 mt-1">{provider.desc}</div>
+                  <div className={`text-sm font-medium ${
+                    selectedProvider === provider.id ? 'text-black' : 'text-white'
+                  }`}>{provider.name}</div>
+                  <div className={`text-xs mt-1 ${
+                    selectedProvider === provider.id ? 'text-gray-700' : 'text-gray-400'
+                  }`}>{provider.desc}</div>
                 </button>
               ))}
             </div>
           </div>
 
           <div className="space-y-4">
-            <label className="block text-sm font-medium text-slate-300 mb-2">API Keys</label>
+            <label className="block text-sm font-medium text-white mb-2">API Keys</label>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5">OpenAI API Key</label>
+              <label className="block text-xs text-gray-300 mb-1.5">OpenAI API Key</label>
               <input
                 type="password"
                 value={apiKeys.openai}
                 onChange={(e) => setApiKeys({ ...apiKeys, openai: e.target.value })}
                 placeholder="sk-..."
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full bg-black border border-[#36454F] rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5">Anthropic API Key</label>
+              <label className="block text-xs text-gray-300 mb-1.5">Anthropic API Key</label>
               <input
                 type="password"
                 value={apiKeys.claude}
                 onChange={(e) => setApiKeys({ ...apiKeys, claude: e.target.value })}
                 placeholder="sk-ant-..."
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full bg-black border border-[#36454F] rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5">Google AI API Key</label>
+              <label className="block text-xs text-gray-300 mb-1.5">Google AI API Key</label>
               <input
                 type="password"
                 value={apiKeys.gemini}
                 onChange={(e) => setApiKeys({ ...apiKeys, gemini: e.target.value })}
                 placeholder="AIza..."
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full bg-black border border-[#36454F] rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
               />
             </div>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
-            <p className="text-xs text-slate-400 leading-relaxed">
+          <div className="bg-black border border-[#36454F] rounded-lg p-4">
+            <p className="text-xs text-gray-300 leading-relaxed">
               Your API keys are stored locally in your browser and never sent to any server except
               the respective AI provider APIs. Stage 4 will integrate these providers for actual AI
               code generation.
@@ -121,16 +125,16 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-[#36454F]">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+            className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors flex items-center gap-2"
+            className="px-6 py-2 bg-white hover:bg-gray-200 text-black font-medium rounded-lg transition-colors flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             Save Settings

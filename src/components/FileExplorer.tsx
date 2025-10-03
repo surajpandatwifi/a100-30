@@ -97,32 +97,32 @@ function FileTreeNode({ node, onFileSelect, depth = 0 }: {
   const getFileIcon = () => {
     if (node.type === 'folder') {
       return isExpanded ? (
-        <FolderOpen className="w-4 h-4 text-cyan-400" />
+        <FolderOpen className="w-4 h-4 text-white" />
       ) : (
-        <Folder className="w-4 h-4 text-cyan-400" />
+        <Folder className="w-4 h-4 text-white" />
       );
     }
 
     if (node.extension === 'cs') {
-      return <FileCode className="w-4 h-4 text-emerald-400" />;
+      return <FileCode className="w-4 h-4 text-white" />;
     }
 
     if (node.extension === 'unity' || node.extension === 'prefab') {
-      return <FileCode className="w-4 h-4 text-blue-400" />;
+      return <FileCode className="w-4 h-4 text-white" />;
     }
 
-    return <File className="w-4 h-4 text-slate-400" />;
+    return <File className="w-4 h-4 text-gray-400" />;
   };
 
   return (
     <div>
       <button
         onClick={handleClick}
-        className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-slate-800 rounded text-sm text-slate-300 transition-colors group"
+        className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-[#2F4F4F] rounded text-sm text-gray-300 transition-colors group"
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
         {node.type === 'folder' && (
-          <span className="text-slate-500">
+          <span className="text-gray-500">
             {isExpanded ? (
               <ChevronDown className="w-3.5 h-3.5" />
             ) : (
@@ -152,9 +152,9 @@ function FileTreeNode({ node, onFileSelect, depth = 0 }: {
 
 export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
   return (
-    <div className="h-full bg-slate-900 overflow-y-auto p-2">
+    <div className="h-full bg-black overflow-y-auto p-2">
       <div className="mb-2 px-2">
-        <p className="text-xs text-slate-500">Unity Project Explorer</p>
+        <p className="text-xs text-gray-400">Unity Project Explorer</p>
       </div>
       {mockFileTree.map((node) => (
         <FileTreeNode key={node.path} node={node} onFileSelect={onFileSelect} />
