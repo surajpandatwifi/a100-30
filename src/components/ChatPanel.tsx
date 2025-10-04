@@ -4,18 +4,50 @@ import { useChatSession } from '../hooks/useChatSession';
 import { useApp } from '../contexts/AppContext';
 import { Storage } from '../utils/storage';
 import MessageBubble from './MessageBubble';
+import { ModelSelector } from './ModelSelector';
+import { CostEstimator, SessionCostSummary } from './CostEstimator';
+import { useLLMService } from '../hooks/useLLMService';
+import { ChatMessage as LLMChatMessage, CostEstimate } from '../types/llm';
 
 interface ChatPanelProps {
   onFileSelect: (filePath: string) => void;
 }
 
 export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
-  const { currentSession, createNewSession, hasRecoverableSession, recoverSession, dismissRecovery } = useApp();
+  const {
+    currentSession,
+    createNewSession,
+    hasRecoverableSession,
+    recoverSession,
+    dismissRecovery,
+    llmService,
+    selectedProvider,
+    selectedModel,
+    setSelectedProvider,
+    setSelectedModel,
+  } = useApp();
   const { messages, sendMessage, loading: sessionLoading } = useChatSession(currentSession?.id || null);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
+  const [costs, setCosts] = useState<CostEstimate[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const {
+    streamChat,
+    isStreaming,
+    streamedContent,
+    currentCost,
+  } = useLLMService({
+    llmService: llmService!,
+    onStreamComplete: async (content, usage, cost) => {
+      await sendMessage(content, 'assistant');
+      setCosts(prev => [...prev, cost]);
+    },
+    onError: (error) => {
+      console.error('LLM Error:', error);
+      sendMessage(`Error: ${error.message}`, 'assistant');
+    },
+  });
 
   useEffect(() => {
     if (hasRecoverableSession) {
@@ -50,26 +82,45 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
   }, [input]);
 
   const handleSend = async () => {
-    if (!input.trim() || !currentSession || isLoading) return;
+    if (!input.trim() || !currentSession || isStreaming || !llmService) return;
 
     const userMessage = input.trim();
     setInput('');
-    setIsLoading(true);
 
     await sendMessage(userMessage, 'user');
 
-    setTimeout(async () => {
-      await sendMessage(
-        `I received your message: "${userMessage}"\n\nIn the full implementation, I would:\n1. Parse your Unity project structure\n2. Generate appropriate code/modifications\n3. Show you a detailed plan\n4. Execute changes with your approval\n\nThis is Stage 2 with full database persistence!`,
-        'assistant'
-      );
-      setIsLoading(false);
-    }, 1000);
+    const llmMessages: LLMChatMessage[] = [
+      {
+        role: 'system',
+        content: 'You are Shunya, an AI-powered Unity development assistant. Help users with Unity development tasks, code generation, and project modifications.',
+      },
+      ...messages.map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      })),
+      {
+        role: 'user',
+        content: userMessage,
+      },
+    ];
+
+    await streamChat(llmMessages, {
+      provider: selectedProvider,
+      model: selectedModel,
+      temperature: 0.7,
+      maxTokens: 4096,
+    });
   };
 
   const handleNewChat = async () => {
     await createNewSession();
     setInput('');
+    setCosts([]);
+  };
+
+  const handleModelChange = (provider: any, model: any) => {
+    setSelectedProvider(provider);
+    setSelectedModel(model);
   };
 
   const handleRecover = () => {
@@ -85,14 +136,25 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
 
   return (
     <div className="flex flex-col h-full bg-[#36454F]">
-      <div className="h-12 border-b border-[#2F4F4F] flex items-center justify-between px-4">
+      <div className="h-12 border-b border-[#2F4F4F] flex items-center justify-between px-4 gap-4">
         <h2 className="text-sm font-medium text-white">Chat</h2>
-        <button
-          onClick={handleNewChat}
-          className="px-3 py-1.5 bg-white text-black rounded-md transition-colors hover:bg-gray-200 font-medium text-sm"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          {llmService && (
+            <ModelSelector
+              selectedProvider={selectedProvider}
+              selectedModel={selectedModel}
+              onModelChange={handleModelChange}
+              availableProviders={llmService.getAvailableProviders()}
+              disabled={isStreaming}
+            />
+          )}
+          <button
+            onClick={handleNewChat}
+            className="px-3 py-1.5 bg-white text-black rounded-md transition-colors hover:bg-gray-200 font-medium text-sm"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {showRecovery && (
@@ -137,6 +199,11 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
                 Your AI-powered Unity development assistant. Describe what you want to build or
                 modify, and I'll help you plan and execute changes safely.
               </p>
+              {costs.length > 0 && (
+                <div className="mt-6">
+                  <SessionCostSummary costs={costs} />
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -144,13 +211,24 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
             {messages.map((message) => (
               <MessageBubble key={message.id} message={message} onFileClick={onFileSelect} />
             ))}
-            {isLoading && (
-              <div className="flex items-center gap-2 text-gray-300">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Thinking...</span>
+            {isStreaming && (
+              <div className="bg-slate-700 rounded-lg p-4 text-white">
+                <div className="whitespace-pre-wrap">{streamedContent}</div>
+                <div className="flex items-center gap-2 text-slate-400 mt-2">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span className="text-xs">Generating...</span>
+                </div>
               </div>
             )}
             <div ref={messagesEndRef} />
+            {costs.length > 0 && (
+              <div className="mt-4">
+                <SessionCostSummary costs={costs} />
+              </div>
+            )}
+            {currentCost && (
+              <CostEstimator estimate={currentCost} showDetails={true} />
+            )}
           </>
         )}
       </div>
@@ -164,14 +242,14 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Describe what you want to build or modify..."
             className="flex-1 bg-black border border-[#2F4F4F] rounded-lg px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
-            disabled={isLoading}
+            disabled={isStreaming}
           />
           <button
             onClick={handleSend}
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isStreaming || !llmService}
             className="px-4 py-2 bg-white hover:bg-gray-200 disabled:bg-[#36454F] disabled:text-gray-600 text-black font-medium rounded-lg transition-colors flex items-center gap-2"
           >
-            {isLoading ? (
+            {isStreaming ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Send className="w-4 h-4" />

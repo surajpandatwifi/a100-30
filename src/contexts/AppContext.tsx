@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Project, ChatSession } from '../types';
+import { LLMProvider, ModelName } from '../types/llm';
 import { useProjects } from '../hooks/useProjects';
 import { useSessionRecovery } from '../hooks/useSessionRecovery';
 import { ApiService } from '../services/api';
 import { Storage } from '../utils/storage';
+import { LLMService } from '../services/llm/llmService';
 
 interface AppContextType {
   currentProject: Project | null;
@@ -15,6 +17,11 @@ interface AppContextType {
   hasRecoverableSession: boolean;
   recoverSession: () => void;
   dismissRecovery: () => void;
+  llmService: LLMService | null;
+  selectedProvider: LLMProvider;
+  selectedModel: ModelName;
+  setSelectedProvider: (provider: LLMProvider) => void;
+  setSelectedModel: (model: ModelName) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -22,8 +29,30 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<LLMProvider>('openai');
+  const [selectedModel, setSelectedModel] = useState<ModelName>('gpt-4o');
+  const [llmService, setLlmService] = useState<LLMService | null>(null);
   const { projects } = useProjects();
   const { recoveryState, recoverSession: doRecover, dismissRecovery } = useSessionRecovery();
+
+  useEffect(() => {
+    const openaiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    const anthropicKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+    const googleKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
+
+    const service = new LLMService({
+      openai: openaiKey && openaiKey !== 'your_openai_api_key_here' ? openaiKey : undefined,
+      anthropic: anthropicKey && anthropicKey !== 'your_anthropic_api_key_here' ? anthropicKey : undefined,
+      google: googleKey && googleKey !== 'your_google_ai_api_key_here' ? googleKey : undefined,
+    });
+
+    setLlmService(service);
+
+    const availableProviders = service.getAvailableProviders();
+    if (availableProviders.length > 0 && !availableProviders.includes(selectedProvider)) {
+      setSelectedProvider(availableProviders[0]);
+    }
+  }, []);
 
   useEffect(() => {
     const lastProjectId = Storage.getLastProjectId();
@@ -39,8 +68,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const session = await ApiService.createChatSession({
       project_id: projectId || currentProject?.id || null,
       title: 'New Session',
-      model_provider: localStorage.getItem('selected_provider') || 'openai',
-      model_name: 'gpt-4',
+      model_provider: selectedProvider as 'openai' | 'claude' | 'gemini' | 'codex',
+      model_name: selectedModel,
       status: 'active',
     });
 
@@ -89,6 +118,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         hasRecoverableSession: recoveryState.hasRecoverableSession,
         recoverSession,
         dismissRecovery,
+        llmService,
+        selectedProvider,
+        selectedModel,
+        setSelectedProvider,
+        setSelectedModel,
       }}
     >
       {children}
