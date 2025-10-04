@@ -1,47 +1,10 @@
-import { useState, useEffect } from 'react';
 import { Terminal as TerminalIcon, CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { ExecutionLog } from '../types';
+import { useApp } from '../contexts/AppContext';
+import { useExecutionLogs } from '../hooks/useExecutionLogs';
 
 export default function Terminal() {
-  const [logs, setLogs] = useState<ExecutionLog[]>([]);
-
-  useEffect(() => {
-    addMockLogs();
-  }, []);
-
-  const addMockLogs = () => {
-    const mockLogs: ExecutionLog[] = [
-      {
-        id: '1',
-        session_id: 'mock',
-        action_type: 'system_init',
-        target_path: '',
-        status: 'success',
-        details: { message: 'Shunya initialized successfully' },
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        session_id: 'mock',
-        action_type: 'project_scan',
-        target_path: 'Unity Project',
-        status: 'success',
-        details: { files: 127, scripts: 23 },
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: '3',
-        session_id: 'mock',
-        action_type: 'database_connect',
-        target_path: 'Supabase',
-        status: 'success',
-        details: { message: 'Connected to Supabase database' },
-        created_at: new Date().toISOString(),
-      },
-    ];
-    setLogs(mockLogs);
-  };
+  const { currentSession } = useApp();
+  const { logs, loading } = useExecutionLogs(currentSession?.id || null);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

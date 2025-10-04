@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Loader2, Plus, MessageSquare } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { Message, ChatSession } from '../types';
+import { Send, Loader2, Plus, MessageSquare, RefreshCw } from 'lucide-react';
+import { useChatSession } from '../hooks/useChatSession';
+import { useApp } from '../contexts/AppContext';
+import { Storage } from '../utils/storage';
 import MessageBubble from './MessageBubble';
 
 interface ChatPanelProps {
@@ -9,22 +10,28 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { currentSession, createNewSession, hasRecoverableSession, recoverSession, dismissRecovery } = useApp();
+  const { messages, sendMessage, loading: sessionLoading } = useChatSession(currentSession?.id || null);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
+  const [showRecovery, setShowRecovery] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    initializeSession();
+    if (hasRecoverableSession) {
+      setShowRecovery(true);
+    } else if (!currentSession) {
+      handleNewChat();
+    }
   }, []);
 
   useEffect(() => {
-    if (currentSession) {
-      loadMessages();
-      subscribeToMessages();
+    const unsavedInput = Storage.getUnsavedInput();
+    if (unsavedInput) {
+      setInput(unsavedInput);
+      Storage.clearUnsavedInput();
     }
-  }, [currentSession]);
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -34,66 +41,13 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const initializeSession = async () => {
-    const { data, error } = await supabase
-      .from('chat_sessions')
-      .insert({
-        title: 'New Chat Session',
-        model_provider: 'openai',
-        model_name: 'gpt-4',
-        status: 'active',
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating session:', error);
-      return;
+  useEffect(() => {
+    if (input) {
+      Storage.setUnsavedInput(input);
+    } else {
+      Storage.clearUnsavedInput();
     }
-
-    setCurrentSession(data);
-  };
-
-  const loadMessages = async () => {
-    if (!currentSession) return;
-
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('session_id', currentSession.id)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error('Error loading messages:', error);
-      return;
-    }
-
-    setMessages(data || []);
-  };
-
-  const subscribeToMessages = () => {
-    if (!currentSession) return;
-
-    const channel = supabase
-      .channel(`messages:${currentSession.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `session_id=eq.${currentSession.id}`,
-        },
-        (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
+  }, [input]);
 
   const handleSend = async () => {
     if (!input.trim() || !currentSession || isLoading) return;
@@ -102,33 +56,31 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
     setInput('');
     setIsLoading(true);
 
-    const { error } = await supabase.from('messages').insert({
-      session_id: currentSession.id,
-      role: 'user',
-      content: userMessage,
-      metadata: {},
-    });
-
-    if (error) {
-      console.error('Error sending message:', error);
-      setIsLoading(false);
-      return;
-    }
+    await sendMessage(userMessage, 'user');
 
     setTimeout(async () => {
-      await supabase.from('messages').insert({
-        session_id: currentSession.id,
-        role: 'assistant',
-        content: `I received your message: "${userMessage}"\n\nIn the full implementation, I would:\n1. Parse your Unity project structure\n2. Generate appropriate code/modifications\n3. Show you a detailed plan\n4. Execute changes with your approval\n\nThis is the Stage 1 preview. AI integration comes in Stage 4!`,
-        metadata: { preview: true },
-      });
+      await sendMessage(
+        `I received your message: "${userMessage}"\n\nIn the full implementation, I would:\n1. Parse your Unity project structure\n2. Generate appropriate code/modifications\n3. Show you a detailed plan\n4. Execute changes with your approval\n\nThis is Stage 2 with full database persistence!`,
+        'assistant'
+      );
       setIsLoading(false);
     }, 1000);
   };
 
-  const handleNewChat = () => {
-    initializeSession();
-    setMessages([]);
+  const handleNewChat = async () => {
+    await createNewSession();
+    setInput('');
+  };
+
+  const handleRecover = () => {
+    recoverSession();
+    setShowRecovery(false);
+  };
+
+  const handleDismissRecovery = () => {
+    dismissRecovery();
+    setShowRecovery(false);
+    handleNewChat();
   };
 
   return (
@@ -142,6 +94,36 @@ export default function ChatPanel({ onFileSelect }: ChatPanelProps) {
           <Plus className="w-4 h-4" />
         </button>
       </div>
+
+      {showRecovery && (
+        <div className="m-4 p-4 bg-[#2F4F4F] border border-white rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <RefreshCw className="w-5 h-5 text-white" />
+              <div>
+                <p className="text-sm font-medium text-white">Resume Previous Session</p>
+                <p className="text-xs text-gray-300 mt-1">
+                  You have an unfinished session. Would you like to continue?
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDismissRecovery}
+                className="px-3 py-1.5 text-sm text-gray-300 hover:text-white transition-colors"
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={handleRecover}
+                className="px-4 py-1.5 bg-white text-black rounded-md hover:bg-gray-200 transition-colors font-medium text-sm"
+              >
+                Resume
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
