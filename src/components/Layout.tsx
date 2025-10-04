@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Settings, FolderTree, MessageSquare, Terminal as TerminalIcon } from 'lucide-react';
+import { Settings, FolderTree, MessageSquare, Terminal as TerminalIcon, Boxes } from 'lucide-react';
 import ChatPanel from './ChatPanel';
 import FileExplorer from './FileExplorer';
 import FileViewer from './FileViewer';
 import Terminal from './Terminal';
 import SettingsModal from './SettingsModal';
+import UnityAnalysisView from './UnityAnalysisView';
 
 export default function Layout() {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [activeRightPanel, setActiveRightPanel] = useState<'files' | 'viewer'>('files');
+  const [activeRightPanel, setActiveRightPanel] = useState<'files' | 'viewer' | 'unity'>('unity');
 
   return (
     <div className="h-screen flex flex-col bg-black">
@@ -41,8 +42,19 @@ export default function Layout() {
             <div className="flex-1 flex flex-col">
               <div className="h-10 border-b border-[#2F4F4F] flex items-center px-3 bg-[#36454F]">
                 <button
-                  onClick={() => setActiveRightPanel('files')}
+                  onClick={() => setActiveRightPanel('unity')}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    activeRightPanel === 'unity'
+                      ? 'bg-white text-black font-medium'
+                      : 'text-gray-300 hover:text-white hover:bg-[#2F4F4F]'
+                  }`}
+                >
+                  <Boxes className="w-4 h-4" />
+                  Unity Analysis
+                </button>
+                <button
+                  onClick={() => setActiveRightPanel('files')}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ml-2 ${
                     activeRightPanel === 'files'
                       ? 'bg-white text-black font-medium'
                       : 'text-gray-300 hover:text-white hover:bg-[#2F4F4F]'
@@ -65,11 +77,9 @@ export default function Layout() {
               </div>
 
               <div className="flex-1 overflow-hidden">
-                {activeRightPanel === 'files' ? (
-                  <FileExplorer onFileSelect={setSelectedFile} />
-                ) : (
-                  <FileViewer filePath={selectedFile} />
-                )}
+                {activeRightPanel === 'unity' && <UnityAnalysisView />}
+                {activeRightPanel === 'files' && <FileExplorer onFileSelect={setSelectedFile} />}
+                {activeRightPanel === 'viewer' && <FileViewer filePath={selectedFile} />}
               </div>
             </div>
           </div>
