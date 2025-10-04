@@ -1,6 +1,6 @@
 import React from 'react';
 import { FileDiff, DiffLine } from '../services/ai/diffGenerator';
-import { FileText, Plus, Minus, Edit } from 'lucide-react';
+import { FileText, Plus, Minus, CreditCard as Edit } from 'lucide-react';
 
 interface DiffViewerProps {
   diff: FileDiff;
